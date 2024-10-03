@@ -1,0 +1,8 @@
+<RunSettings>
+  <RunConfiguration>
+    <EnvironmentVariables>
+		<MySqlConnectionString>Server=localhost;Port=3306;Database=sprocit;User ID=root;Password=1q0p10qp;</MySqlConnectionString>
+		<SqlServerConnectionString>Data Source=(localdb)\ProjectModels;Initial Catalog=Sprocit;Integrated Security=True;Connect Timeout=30;</SqlServerConnectionString>
+    </EnvironmentVariables>
+  </RunConfiguration>
+</RunSettings>
