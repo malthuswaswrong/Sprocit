@@ -9,7 +9,7 @@ using System.Text;
 
 namespace Sprocit;
 
-public static class Generator
+public static class SprocitGenerator
 {
     private static ILogger? _logger;
     public static void InitializeLogger(ILogger logger)
@@ -27,7 +27,11 @@ public static class Generator
 
         // Generate the code
         string code = GetImplementationCode<T, SqlConnection>(className);
-        _logger?.LogTrace($"{Environment.NewLine}####Sprocit Generated Core####{Environment.NewLine}{code}{Environment.NewLine}####End####");
+
+        if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+        {
+            _logger.LogTrace($"{Environment.NewLine}####Sprocit Generated Core####{Environment.NewLine}{code}{Environment.NewLine}####End####");
+        }
 
         // Compile the code into a dynamic assembly
         Assembly assembly = CompileCode(code, className);
@@ -156,11 +160,9 @@ public static class Generator
     {
         var connectionTypeName = GetTypeName(typeof(TConnection));
         string template = string.Format(_template, className, connectionTypeName);
-        
+
         var reflectedMethods = typeof(TResult).GetMethods(BindingFlags.Public | BindingFlags.Instance);
-        //List<string> exclusionList = ["Dapper", "System.Data.SqlClient"];
         string usingNamespaces = string.Join("\n", GetUserDefinedNamespaces<TResult>()
-            //.Where(x => !exclusionList.Contains(x))
             .Select(ns => $"using {ns};"));
 
         template = template.Replace("###USING_NAMESPACES###", usingNamespaces);
@@ -171,10 +173,11 @@ public static class Generator
             string generatedMethodSignature = GetMethodSignature(method);
             string? dynamicParametersCode = GetDynamicParametersCode(method);
             string returnType = GetInnerTypeName(method.ReturnType);
+            string methodName = GetProcedureName(method);
             sb.AppendLine($"{generatedMethodSignature}");
             sb.AppendLine("{");
             sb.AppendLine(dynamicParametersCode);
-            sb.AppendLine($"    return ProcedureRunner<{returnType}>(\"{method.Name}\", parameters);");
+            sb.AppendLine($"    return ProcedureRunner<{returnType}>(\"{methodName}\", parameters);");
             sb.AppendLine("}");
         }
 
@@ -183,19 +186,35 @@ public static class Generator
         return template;
     }
 
+    private static string GetProcedureName(MethodInfo method)
+    {
+        var sprocitProcName = method.GetCustomAttribute<SprocitProcNameAttribute>();
+        if (sprocitProcName != null)
+        {
+            return sprocitProcName.ProcedureName;
+        }
+        return method.Name;
+    }
+
     private static string? GetDynamicParametersCode(MethodInfo method)
     {
         //This method will generate the code to create the DynamicParameters object for the Dapper call
         var parameters = method.GetParameters();
-        if (parameters.Length == 0)
-        {
-            return null;
-        }
-
         StringBuilder sb = new StringBuilder();
         sb.AppendLine("    var parameters = new DynamicParameters();");
+        if (parameters.Length == 0)
+        {
+            return sb.ToString(); // TODO test how Dapper works with no parameters
+        }
         foreach (var parameter in parameters)
         {
+            //For each parameter look for the SprocitParamName attribute and use that name if it exists
+            var sprocitParamName = parameter.GetCustomAttribute<SprocitParamNameAttribute>();
+            if (sprocitParamName != null)
+            {
+                sb.AppendLine($"    parameters.Add(\"{sprocitParamName.ParamName}\", {parameter.Name});");
+                continue;
+            }
             sb.AppendLine($"    parameters.Add(\"{parameter.Name}\", {parameter.Name});");
         }
         return sb.ToString();
@@ -285,7 +304,7 @@ public static class Generator
         if (type.IsGenericType)
         {
             // Add namespace of the generic type definition
-            if(namespaces.Contains(type.Namespace!) == false) namespaces.Add(type.Namespace!);
+            if (namespaces.Contains(type.Namespace!) == false) namespaces.Add(type.Namespace!);
 
             // Recursively add namespaces of generic type arguments
             foreach (var arg in type.GetGenericArguments())

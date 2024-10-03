@@ -10,10 +10,10 @@ using Xunit.Abstractions;
 
 namespace Sprocit.Test;
 
-public class GeneratorTests
+public class SprocitGeneratorTests
 {
-    ILogger<GeneratorTests> _logger;
-    public GeneratorTests(ITestOutputHelper output)
+    ILogger<SprocitGeneratorTests> _logger;
+    public SprocitGeneratorTests(ITestOutputHelper output)
     {
         var serilogLogger = new LoggerConfiguration()
             .MinimumLevel.Verbose() // Set minimum log level
@@ -29,25 +29,24 @@ public class GeneratorTests
         });
 
         var serviceProvider = serviceCollection.BuildServiceProvider();
-        _logger = serviceProvider.GetRequiredService<ILogger<GeneratorTests>>();
+        _logger = serviceProvider.GetRequiredService<ILogger<SprocitGeneratorTests>>();
+        SprocitGenerator.InitializeLogger(_logger);
     }
     [Fact]
     public void GetActivatedClassSqlServer()
     {
-        Generator.InitializeLogger(_logger);
         SqlConnection connection = new SqlConnection(Environment.GetEnvironmentVariable("SqlServerConnectionString"));
-        var cut = Generator.GetImplementation<IMySprocitTest>(connection);
-        var result = cut.GetMoviesByRating(8.9f);
+        var cut = SprocitGenerator.GetImplementation<IMySprocitTest>(connection);
+        var result = cut.MoviesRatings(8.9f);
         Assert.NotNull(result);
         Assert.Equal(4, result.Count());
     }
     [Fact]
     public void GetActivatedClassIDbConnection()
     {
-        Generator.InitializeLogger(_logger);
         IDbConnection connection = new MySqlConnection(Environment.GetEnvironmentVariable("MySqlConnectionString"));
-        var cut = Generator.GetImplementation<IMySprocitTest>(connection);
-        var result = cut.GetMoviesByRating(8.9f);
+        var cut = SprocitGenerator.GetImplementation<IMySprocitTest>(connection);
+        var result = cut.MoviesRatings(8.9f);
         Assert.NotNull(result);
         Assert.Equal(4, result.Count());
         //Assert.Fail("Remove password from connection string");
