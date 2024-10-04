@@ -16,7 +16,8 @@ public static class SprocitGenerator
     {
         _logger = logger;
     }
-    public static T GetImplementation<T>(SqlConnection connection)
+    public static T GetImplementation<T>(SqlConnection connection) => GetImplementation<T>(connection, _logger);
+    public static T GetImplementation<T>(SqlConnection connection, ILogger? logger)
     {
         string interfaceName = typeof(T).Name;
         if (!interfaceName.StartsWith("I"))
@@ -28,9 +29,9 @@ public static class SprocitGenerator
         // Generate the code
         string code = GetImplementationCode<T, SqlConnection>(className);
 
-        if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+        if (logger?.IsEnabled(LogLevel.Trace) ?? false)
         {
-            _logger.LogTrace($"{Environment.NewLine}####Sprocit Generated Core####{Environment.NewLine}{code}{Environment.NewLine}####End####");
+            logger.LogTrace($"{Environment.NewLine}####Sprocit Generated Core####{Environment.NewLine}{code}{Environment.NewLine}####End####");
         }
 
         // Compile the code into a dynamic assembly
@@ -41,7 +42,8 @@ public static class SprocitGenerator
 
         return instance;
     }
-    public static T GetImplementation<T>(IDbConnection connection)
+    public static T GetImplementation<T>(IDbConnection connection) => GetImplementation<T>(connection, _logger);
+    public static T GetImplementation<T>(IDbConnection connection, ILogger? logger)
     {
         string interfaceName = typeof(T).Name;
         if (!interfaceName.StartsWith("I"))
@@ -52,7 +54,11 @@ public static class SprocitGenerator
 
         // Generate the code
         string code = GetImplementationCode<T, IDbConnection>(className);
-        _logger?.LogTrace($"{Environment.NewLine}####Sprocit Generated Core####{Environment.NewLine}{code}{Environment.NewLine}####End####");
+
+        if (logger?.IsEnabled(LogLevel.Trace) ?? false)
+        {
+            logger.LogTrace($"{Environment.NewLine}####Sprocit Generated Core####{Environment.NewLine}{code}{Environment.NewLine}####End####");
+        }
 
         // Compile the code into a dynamic assembly
         Assembly assembly = CompileCode(code, className);

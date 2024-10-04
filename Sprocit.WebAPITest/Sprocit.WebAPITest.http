@@ -1,0 +1,6 @@
+@Sprokit.WebAPITest_HostAddress = http://localhost:5156
+
+GET {{Sprokit.WebAPITest_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

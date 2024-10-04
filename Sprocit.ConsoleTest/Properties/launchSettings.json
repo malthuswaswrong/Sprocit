@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "Sprocit.ConsoleTest": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "SqlServerConnectionString": "Data Source=(localdb)\\ProjectModels;Initial Catalog=Sprocit;Integrated Security=True;Connect Timeout=30;"
+      }
+    }
+  }
+}
