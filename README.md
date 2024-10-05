@@ -46,6 +46,7 @@ foreach (var movie in movies)
 ```
 
 Adding your interface to dependency injection and calling a stored procedure in an endpoint using minimal API
+
 ```csharp
 using Sprocit;
 
@@ -54,6 +55,7 @@ using Sprocit;
 builder.Services.AddScoped( _ => (new SqlConnection(Environment.GetEnvironmentVariable("SqlServerConnectionString")!)).Sprocit<IMySprocitTest>());
 
 ...
+
 
 app.MapGet("/testsprocit", (float rating, IMySprocitTest sprocit) => sprocit.MoviesRatings(rating))
 .WithOpenApi();
@@ -69,5 +71,7 @@ connection.Sprocit<IMySprocitTest>(logger: logger);
 ```
 
 ## Current Limitations
+
 - Sprocit only supports stored procedures that return a single result set and the result is `IEnumerable<T>`.
 - Sprocit only supports stored procedures that return a result set that can be mapped to a record or class with primitive type properties.  Dapper does the mapping.  So if Dapper can do it with it's default behavior, Sprocit can do it.
+
