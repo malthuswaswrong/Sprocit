@@ -13,7 +13,7 @@ Sprocit supports both SqlConnection and IDbConnection.
 
 ## Installation
 
-TODO
+NuGet\Install-Package Sprocit -Version 0.1.0
 
 ## Examples
 
