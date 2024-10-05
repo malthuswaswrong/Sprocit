@@ -15,6 +15,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sprocit.ConsoleTest", "Spro
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{CB768430-85EE-4412-9689-DBB9B4EDA537}"
 	ProjectSection(SolutionItems) = preProject
+		GetMoviesByRating.sql = GetMoviesByRating.sql
 		LICENSE.txt = LICENSE.txt
 		README.md = README.md
 	EndProjectSection
