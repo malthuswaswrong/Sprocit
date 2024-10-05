@@ -58,7 +58,7 @@ builder.Services.AddSprocitFactory();
 app.MapGet("/testsprocit2", (float rating, ISprocitFactory sprocitFactory) =>
 {
     IMySprocitTest myInstance = sprocitFactory.GetImplementation<IMySprocitTest>(new SqlConnection("your connection string"));
-    return myInstance.MoviesRatings(rating);;
+    return myInstance.MoviesRatings(rating);
 })
 
 ```
