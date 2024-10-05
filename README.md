@@ -40,11 +40,12 @@ foreach (var movie in myInstance.MoviesRatings(8.9f))
 Adding your interface directly to dependency injection using the AddSprocit extension method
 ```csharp
 
-builder.Services.AddSprocit<IMySprocitTest>(() => #your sql connection#);
+builder.Services.AddSprocit<IMySprocitTest>(() => new SqlConnection("your connection string");
 
 ```
 
 Adding the ISprocitFactory to dependency injection and then using it to create your instance in an endpoint
+
 ```csharp
 using Sprocit;
 
@@ -56,9 +57,8 @@ builder.Services.AddSprocitFactory();
 
 app.MapGet("/testsprocit2", (float rating, ISprocitFactory sprocitFactory) =>
 {
-    IMySprocitTest sprocit = sprocitFactory.GetImplementation<IMySprocitTest>(new SqlConnection("Data Source=(localdb)\\ProjectModels;Initial Catalog=Sprocit;Integrated Security=True;Connect Timeout=30;"));
-    var movies = sprocit.MoviesRatings(rating);
-    return movies;
+    IMySprocitTest myInstance = sprocitFactory.GetImplementation<IMySprocitTest>(new SqlConnection("your connection string"));
+    return myInstance.MoviesRatings(rating);;
 })
 
 ```
