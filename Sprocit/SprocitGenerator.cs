@@ -9,15 +9,9 @@ using System.Text;
 
 namespace Sprocit;
 
-public static class SprocitGenerator
+internal static class SprocitGenerator
 {
-    private static ILogger? _logger;
-    public static void InitializeLogger(ILogger logger)
-    {
-        _logger = logger;
-    }
-    public static T GetImplementation<T>(SqlConnection connection) => GetImplementation<T>(connection, _logger);
-    public static T GetImplementation<T>(SqlConnection connection, ILogger? logger)
+    internal static T GetImplementation<T>(SqlConnection connection, ILogger? logger = null)
     {
         string interfaceName = typeof(T).Name;
         if (!interfaceName.StartsWith("I"))
@@ -42,8 +36,7 @@ public static class SprocitGenerator
 
         return instance;
     }
-    public static T GetImplementation<T>(IDbConnection connection) => GetImplementation<T>(connection, _logger);
-    public static T GetImplementation<T>(IDbConnection connection, ILogger? logger)
+    internal static T GetImplementation<T>(IDbConnection connection, ILogger? logger)
     {
         string interfaceName = typeof(T).Name;
         if (!interfaceName.StartsWith("I"))

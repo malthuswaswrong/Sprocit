@@ -4,11 +4,7 @@ using Sprocit;
 
 var builder = WebApplication.CreateBuilder(args);
 
-//builder.Services.AddScoped<IMySprocitTest>((x) =>
-//    Sprocit.SprocitGenerator.GetImplementation<IMySprocitTest>(new SqlConnection("Data Source=(localdb)\\ProjectModels;Initial Catalog=Sprocit;Integrated Security=True;Connect Timeout=30;"))
-//);
-builder.Services.AddSprocit<IMySprocitTest>(() => new SqlConnection("Data Source=(localdb)\\ProjectModels;Initial Catalog=Sprocit;Integrated Security=True;Connect Timeout=30;"), ServiceLifetime.Transient);
-builder.Services.AddSprocitFactory();
+builder.Services.AddScoped(_ => (new SqlConnection(Environment.GetEnvironmentVariable("SqlServerConnectionString")!)).Sprocit<IMySprocitTest>());
 
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -26,44 +22,16 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast = Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast")
+app.MapGet("/testsprocit", (float rating, IMySprocitTest sprocit) => sprocit.MoviesRatings(rating))
 .WithOpenApi();
 
-app.MapGet("/testsprocit", (float rating, IMySprocitTest sprocit) =>
+app.MapGet("/testsprocit2", (float rating) =>
 {
-    var movies = sprocit.MoviesRatings(rating);
-    return movies;
-})
-.WithOpenApi();
-
-app.MapGet("/testsprocit2", (float rating, ISprocitFactory sprocitFactory) =>
-{
-    IMySprocitTest sprocit = sprocitFactory.GetImplementation<IMySprocitTest>(new SqlConnection("Data Source=(localdb)\\ProjectModels;Initial Catalog=Sprocit;Integrated Security=True;Connect Timeout=30;"));
+    var sprocit = (new SqlConnection(Environment.GetEnvironmentVariable("SqlServerConnectionString")!)
+    .Sprocit<IMySprocitTest>());
     var movies = sprocit.MoviesRatings(rating);
     return movies;
 })
 .WithOpenApi();
 
 app.Run();
-
-internal record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
