@@ -1,19 +1,12 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using System.Data;
 using System.Data.SqlClient;
 
 namespace Sprocit;
 
 public static class Extensions
 {
-    public static IServiceCollection AddSprocit<T>(this IServiceCollection services, Func<SqlConnection> sqlConnectionFactory, ServiceLifetime lifetime = ServiceLifetime.Singleton) where T : class
-    {
-        SqlConnection connection = sqlConnectionFactory();
-        services.Add(new ServiceDescriptor(typeof(T), sp => SprocitGenerator.GetImplementation<T>(connection), lifetime));
-        return services;
-    }
-    public static IServiceCollection AddSprocitFactory(this IServiceCollection services)
-    {
-        services.AddSingleton<ISprocitFactory, SprocitFactory>();
-        return services;
-    }
+    public static T Sprocit<T>(this SqlConnection connection, ILogger? logger = null) => SprocitGenerator.GetImplementation<T>(connection, logger);
+    public static T Sprocit<T>(this IDbConnection connection, ILogger? logger = null) => SprocitGenerator.GetImplementation<T>(connection, logger);
 }

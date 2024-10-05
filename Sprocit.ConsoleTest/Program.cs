@@ -3,7 +3,7 @@ using Sprocit;
 using System.Data.SqlClient;
 
 SqlConnection connection = new SqlConnection(Environment.GetEnvironmentVariable("SqlServerConnectionString"));
-IMySprocitTest sprocit = SprocitGenerator.GetImplementation<IMySprocitTest>(connection);
+var sprocit = connection.Sprocit<IMySprocitTest>();
 
 var movies = sprocit.MoviesRatings(8.9f);
 foreach (var movie in movies)
