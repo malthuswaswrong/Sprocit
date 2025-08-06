@@ -1,7 +1,7 @@
 # Sprocit
 Sprocit is an interface based stored procedure mapping library inspired by [Refit](https://github.com/reactiveui/refit) that makes calling stored procedures easier.
 
-You define an interface with methods that represent stored procedures and Sprocit will generate the necessary code to call them.  The generated code uses [Dapper](https://github.com/DapperLib/Dapper) to call stored procedures and map the results onto the objects you specified as the return type. Sprocit will compile the generated code into an assembly and return it as an implemention of the interface.
+You define an interface with methods that represent stored procedures and Sprocit will generate the necessary code to call them.  The generated code uses [Dapper](https://github.com/DapperLib/Dapper) to call stored procedures and map the results onto the objects you specified as the return type. Sprocit will compile the generated code into an assembly and return it as an implementation of the interface.
 
 By default sprocit will directly map the method names and parameters to the names and parameters of the stored procedure. You can override this behavior by using the `SprocitProcName` attribute on the method to name the stored procedure, and the `SprocitParamName` attribute to name the parameters.
 
