@@ -294,7 +294,9 @@ internal static class SprocitGenerator
             }
         }
 
-        return namespaces.Where(ns => !string.IsNullOrEmpty(ns)).ToList();
+        return namespaces
+            .Where(ns => !string.IsNullOrEmpty(ns) && !IsSystemNamespace(ns))
+            .ToList();
     }
 
     // Helper method to add the namespace of a type and handle generic types recursively

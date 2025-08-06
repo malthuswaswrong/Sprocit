@@ -5,6 +5,7 @@ using Serilog;
 using SharedTestingModels;
 using System.Data;
 using System.Data.SqlClient;
+using System.Reflection;
 using Xunit.Abstractions;
 
 namespace Sprocit.Test;
@@ -29,7 +30,7 @@ public class SprocitGeneratorTests
         var serviceProvider = serviceCollection.BuildServiceProvider();
         _logger = serviceProvider.GetRequiredService<ILogger<SprocitGeneratorTests>>();
     }
-    [Fact]
+    [Fact(Skip = "Integration test requires database connection.")]
     public void GetActivatedClassSqlServer()
     {
         SqlConnection connection = new SqlConnection(Environment.GetEnvironmentVariable("SqlServerConnectionString"));
@@ -38,7 +39,7 @@ public class SprocitGeneratorTests
         Assert.NotNull(result);
         Assert.Equal(4, result.Count());
     }
-    [Fact]
+    [Fact(Skip = "Integration test requires database connection.")]
     public void GetActivatedClassIDbConnection()
     {
         IDbConnection connection = new MySqlConnection(Environment.GetEnvironmentVariable("MySqlConnectionString"));
@@ -46,5 +47,21 @@ public class SprocitGeneratorTests
         var result = cut.MoviesRatings(8.9f);
         Assert.NotNull(result);
         Assert.Equal(4, result.Count());
+    }
+
+    [Fact]
+    public void GetUserDefinedNamespaces_FiltersSystemNamespaces()
+    {
+        // Use reflection to invoke private GetUserDefinedNamespaces<T>() method
+        var generatorType = typeof(Extensions).Assembly.GetType("Sprocit.SprocitGenerator", true)!;
+        var methodInfo = generatorType.GetMethod("GetUserDefinedNamespaces", BindingFlags.NonPublic | BindingFlags.Static);
+        Assert.NotNull(methodInfo);
+
+        var genericMethod = methodInfo!.MakeGenericMethod(typeof(IMySprocitTest));
+        var result = (IEnumerable<string>)genericMethod.Invoke(null, null)!;
+
+        Assert.Contains("SharedTestingModels", result);
+        Assert.DoesNotContain("System", result);
+        Assert.DoesNotContain("Microsoft", result);
     }
 }
