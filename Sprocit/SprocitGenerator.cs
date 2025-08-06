@@ -6,6 +6,7 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Reflection;
 using System.Text;
+using System.Linq;
 
 namespace Sprocit;
 
@@ -171,13 +172,36 @@ internal static class SprocitGenerator
         {
             string generatedMethodSignature = GetMethodSignature(method);
             string? dynamicParametersCode = GetDynamicParametersCode(method);
-            string returnType = GetInnerTypeName(method.ReturnType);
             string methodName = GetProcedureName(method);
-            sb.AppendLine($"{generatedMethodSignature}");
-            sb.AppendLine("{");
-            sb.AppendLine(dynamicParametersCode);
-            sb.AppendLine($"    return ProcedureRunner<{returnType}>(\"{methodName}\", parameters);");
-            sb.AppendLine("}");
+
+            // Determine if the return type is a tuple (indicating multiple result sets)
+            if (IsTupleType(method.ReturnType))
+            {
+                var tupleTypes = method.ReturnType.GetGenericArguments();
+                sb.AppendLine($"{generatedMethodSignature}");
+                sb.AppendLine("{");
+                sb.AppendLine(dynamicParametersCode);
+                sb.AppendLine($"    using var multi = connection.QueryMultiple(\"{methodName}\", parameters, commandType: System.Data.CommandType.StoredProcedure);");
+
+                for (int i = 0; i < tupleTypes.Length; i++)
+                {
+                    var innerType = GetInnerTypeName(tupleTypes[i]);
+                    sb.AppendLine($"    var result{i + 1} = multi.Read<{innerType}>().ToList();");
+                }
+
+                var returnValues = string.Join(", ", Enumerable.Range(1, tupleTypes.Length).Select(i => $"result{i}"));
+                sb.AppendLine($"    return ({returnValues});");
+                sb.AppendLine("}");
+            }
+            else
+            {
+                string returnType = GetInnerTypeName(method.ReturnType);
+                sb.AppendLine($"{generatedMethodSignature}");
+                sb.AppendLine("{");
+                sb.AppendLine(dynamicParametersCode);
+                sb.AppendLine($"    return ProcedureRunner<{returnType}>(\"{methodName}\", parameters);");
+                sb.AppendLine("}");
+            }
         }
 
         template = template.Replace("###METHODS###", sb.ToString());
@@ -277,6 +301,15 @@ internal static class SprocitGenerator
             return type.Name;
         }
     }
+    private static bool IsTupleType(Type type)
+    {
+        if (!type.IsGenericType)
+        {
+            return false;
+        }
+        var name = type.GetGenericTypeDefinition().FullName;
+        return name != null && (name.StartsWith("System.ValueTuple") || name.StartsWith("System.Tuple"));
+    }
     private static List<string> GetUserDefinedNamespaces<T>()
     {
         var namespaces = new HashSet<string>(); // Using HashSet to ensure uniqueness
@@ -329,6 +362,7 @@ internal static class SprocitGenerator
         using Dapper;
         using System.Data;
         using System.Data.SqlClient;
+        using System.Linq;
         
         
         ###USING_NAMESPACES###

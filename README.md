@@ -30,6 +30,16 @@ public record MovieRecord(int Movie_ID, string Title, int Release_Year, string G
 
 ```
 
+Defining a method that returns multiple result sets. Each result set maps to an `IEnumerable<T>` in a tuple and is populated using `QueryMultiple` under the covers.
+
+```csharp
+public interface IMySprocitTest
+{
+    [SprocitProcName("GetMoviesByRatingMulti")]
+    (IEnumerable<MovieRecord> High, IEnumerable<MovieRecord> Low) MoviesRatingsMulti([SprocitParamName("MinRating")] float ratingMin);
+}
+```
+
 Using Sprocit in a console application
 ```csharp
 using Sprocit;
@@ -72,6 +82,6 @@ connection.Sprocit<IMySprocitTest>(logger: logger);
 
 ## Current Limitations
 
-- Sprocit only supports stored procedures that return a single result set and the result is `IEnumerable<T>`.
+- Sprocit only supports result sets that can be mapped to `IEnumerable<T>` collections (single or as part of a tuple for multiple result sets).
 - Sprocit only supports stored procedures that return a result set that can be mapped to a record or class with primitive type properties.  Dapper does the mapping.  So if Dapper can do it with it's default behavior, Sprocit can do it.
 
